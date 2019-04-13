@@ -3,7 +3,9 @@
  * @author Mugen87 / https://github.com/Mugen87
  * Customized by https://github.com/taredding
  */
-
+const SCALE = 10;
+ 
+ 
 var rightMouseDown = false;
 var mudman;
  
@@ -353,5 +355,6 @@ function main() {
   init();
   animate();
   createModelInstance("mudman.obj", "mudman");
+  initWorldGrid();
 }
       
