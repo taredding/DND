@@ -5,6 +5,7 @@
  */
 
 var rightMouseDown = false;
+var mudman;
  
 THREE.PointerLockControls = function ( camera, domElement ) {
 
@@ -101,10 +102,15 @@ var color = new THREE.Color();
 
 
 function init() {
-window.oncontextmenu = function ()
-{
-    return false;     // cancel default menu
-}
+  window.oncontextmenu = function ()
+  {
+      return false;     // cancel default menu
+  }
+  
+  var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+
+
+  
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
 
   scene = new THREE.Scene();
@@ -209,7 +215,6 @@ window.oncontextmenu = function ()
     }
   } 
 
-  raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 
   // floor
 
@@ -250,10 +255,30 @@ window.oncontextmenu = function ()
 
   var floor = new THREE.Mesh( floorGeometry, floorMaterial );
   scene.add( floor );
+  
+var geometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
+
+for ( var i = 0; i < 2000; i ++ ) {
+
+var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+
+object.position.x = Math.random() * 800 - 400;
+     object.position.y = Math.random() * 800 - 400;
+     object.position.z = Math.random() * 800 - 400;
+
+object.rotation.x = Math.random() * 2 * Math.PI;
+     object.rotation.y = Math.random() * 2 * Math.PI;
+     object.rotation.z = Math.random() * 2 * Math.PI;
+
+object.scale.x = Math.random() + 0.5;
+     object.scale.y = Math.random() + 0.5;
+     object.scale.z = Math.random() + 0.5;
+
+//scene.add( object );
 
 
-  //
-
+}
+  
   renderer = new THREE.WebGLRenderer( { antialias: true } );
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
@@ -277,22 +302,25 @@ function onWindowResize() {
 function animate() {
 
   requestAnimationFrame( animate );
-
-
-
-    raycaster.ray.origin.copy( controls.getObject().position );
-    raycaster.ray.origin.y -= 10;
-
-    var intersections = raycaster.intersectObjects( objects );
-
-    var onObject = intersections.length > 0;
+camera.updateMatrixWorld();
 
     var time = performance.now();
     var delta = ( time - prevTime ) / 1000;
 
     velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
-
+    velocity.y -=  velocity.y * 10.0 * delta;
+    if (!document.hasFocus()) {
+      velocity.x = 0;
+      velocity.z = 0;
+      moveForward = false;
+      moveBackward = false;
+      moveLeft = false;
+      moveRight = false;
+      ascend = false;
+      descend = false;
+      canJump = false;
+    }
     //velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
     direction.z = Number( moveForward ) - Number( moveBackward );
@@ -302,19 +330,13 @@ function animate() {
     if ( moveForward || moveBackward ) velocity.z -= direction.z * 1000.0 * delta;
     if ( moveLeft || moveRight ) velocity.x -= direction.x * 1000.0 * delta;
     if (ascend) {
-      velocity.y =  10000.0 * delta;
+      velocity.y +=  10000.0 * delta;
     }
     else if (descend) {
-      velocity.y =  -10000.0 * delta;
+      velocity.y +=  -10000.0 * delta;
     }
     else {
       velocity.y = 0;
-    }
-    if ( onObject === true ) {
-
-      velocity.y = Math.max( 0, velocity.y );
-      canJump = true;
-
     }
 
     controls.getObject().translateX( velocity.x * delta );
@@ -330,5 +352,6 @@ function animate() {
 function main() {
   init();
   animate();
+  createModelInstance("mudman.obj", "mudman");
 }
       
