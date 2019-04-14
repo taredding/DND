@@ -46,6 +46,7 @@ function Cell(x, y, z) {
 
 
 function main() {
+
   init();
   animate();
   initWorldGrid();

@@ -1,17 +1,27 @@
 var loader = new THREE.OBJLoader();
 var materialLoader = new THREE.MTLLoader();
+var textureLoader = new THREE.TextureLoader();
 //materialLoader.setBaseURL("http://127.0.0.1/DND/");
 var modelInstances = [];
+var textures = [];
 var modelPromises = [];
 
 
-function loadModel(modelName, name) {
+function loadModel(modelName, name, textureName) {
   var prom = new Promise(function(resolve, reject) {
-    var textureLoader = new THREE.TextureLoader();
-    var map = textureLoader.load('./textures/placeholder.png');
+    var map = null;
+    for (var i = 0; i < textures.length; i++) {
+      if (textures[i].name == "placeholder.png") {
+        map = textures[i];
+        break;
+      }
+    }
+    if (map == null) {
+      map = textureLoader.load('./textures/placeholder.png');
+      map.name = "placeholder.png";
+      textures.push(map);
+    }
     var material = new THREE.MeshPhongMaterial({map: map});
-
-    var loader = new THREE.OBJLoader();
     loader.load( './models/panel2.obj', function ( object ) {
       object.scale.set(SCALE, SCALE, SCALE);
       // For any meshes in the model, add our material.

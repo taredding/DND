@@ -102,8 +102,11 @@ var vertex = new THREE.Vector3();
 var color = new THREE.Color();
 
 
-
+var stats;
 function init() {
+  stats = new Stats();
+  stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+  document.body.appendChild( stats.dom );
   window.oncontextmenu = function ()
   {
       return false;     // cancel default menu
@@ -302,7 +305,7 @@ function onWindowResize() {
 }
 
 function animate() {
-
+  stats.begin();
   requestAnimationFrame( animate );
 camera.updateMatrixWorld();
 
@@ -347,7 +350,7 @@ camera.updateMatrixWorld();
 
     prevTime = time;
 
-
+    stats.end();
   renderer.render( scene, camera );
 
 }
