@@ -351,10 +351,5 @@ camera.updateMatrixWorld();
   renderer.render( scene, camera );
 
 }
-function main() {
-  init();
-  animate();
-  createModelInstance("mudman.obj", "mudman");
-  initWorldGrid();
-}
+
       
