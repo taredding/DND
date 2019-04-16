@@ -36,7 +36,7 @@ function Cell(x, y, z) {
   }
   this.addFloor = function() {
     var _this = this;
-    createModelInstance("panel2.obj", "panel2").then(function (model) {
+    createModelInstance("panel2.obj", "placeholder.png").then(function (model) {
     _this.models.push(model);
     model.position.set(_this.position.x, _this.position.y, _this.position.z);
   });
