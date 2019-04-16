@@ -7,7 +7,9 @@ const SCALE = 10;
  
  
 var rightMouseDown = false;
-var mudman;
+var leftMouseDown = false;
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
  
 THREE.PointerLockControls = function ( camera, domElement ) {
 
@@ -30,17 +32,19 @@ THREE.PointerLockControls = function ( camera, domElement ) {
 
 
 	function onMouseMove( event ) {
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    
+		if ( rightMouseDown ) {
 
-		if ( rightMouseDown === false ) return;
+      var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+      var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+      yawObject.rotation.y -= movementX * TURN_SPEED;
+      pitchObject.rotation.x -= movementY * TURN_SPEED;
 
-		yawObject.rotation.y -= movementX * TURN_SPEED;
-		pitchObject.rotation.x -= movementY * TURN_SPEED;
-
-		pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
-
+      pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
+    }
 	}
 
 	this.connect = function () {
@@ -94,6 +98,15 @@ var moveRight = false;
 var ascend = false;
 var descend = false;
 var canJump = false;
+
+var moveModelForward = false;
+var moveModelBackward = false;
+var moveModelLeft = false;
+var moveModelRight = false;
+
+var shiftDown = false;
+
+var spaceDown = false;
 
 var prevTime = performance.now();
 var velocity = new THREE.Vector3();
@@ -164,10 +177,13 @@ function init() {
         break;
 
       case 32: // space
-        if ( canJump === true ) velocity.y += 350;
-        canJump = false;
+        spaceDown = true;
         break;
-
+        
+      case 73:
+        moveModelForward = true;
+      break;
+  
     }
 
   };
@@ -202,6 +218,13 @@ function init() {
       case 69: // e
         ascend = false;
         break;
+      case 32: // space
+        spaceDown = false;
+        break;
+        
+      case 73:
+        moveModelForward = false;
+      break;
     }
 
   };
@@ -213,10 +236,16 @@ function init() {
     if (e.button == 2) {
       rightMouseDown = false;
     }
+    if (e.button == 0) {
+      leftMouseDown = false;
+    }
   }
   document.body.onmousedown = function (e) {
     if (e.button == 2) {
       rightMouseDown = true;
+    }
+    if (e.button == 0) {
+      leftMouseDown = true;
     }
   } 
 
@@ -308,7 +337,24 @@ function animate() {
   stats.begin();
   requestAnimationFrame( animate );
 camera.updateMatrixWorld();
-
+    
+    if (leftMouseDown) {
+      raycaster.setFromCamera( mouse, camera );
+      var intersects = raycaster.intersectObjects( meshes );
+      //console.log("Intersections: " + intersects.length);
+      if (intersects.length > 0) {
+        //console.log("Parent: " + intersects[0].object.parent);
+        for (var i = 0; i < intersects.length; i++) {
+          var object = intersects[0].object.parent;
+          // ignore invisible objects
+          if (object.visible) {
+            highlightModel(object);
+            break;
+          }
+        }
+      }
+    }
+    
     var time = performance.now();
     var delta = ( time - prevTime ) / 1000;
 
@@ -324,7 +370,6 @@ camera.updateMatrixWorld();
       moveRight = false;
       ascend = false;
       descend = false;
-      canJump = false;
     }
     //velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
@@ -334,6 +379,14 @@ camera.updateMatrixWorld();
 
     if ( moveForward || moveBackward ) velocity.z -= direction.z * 1000.0 * delta;
     if ( moveLeft || moveRight ) velocity.x -= direction.x * 1000.0 * delta;
+    //console.log(moveModelForward && highlightedModel != null);
+    if (moveModelForward && highlightModel != null) {
+      highlightedModel.position.z += 100.0 * delta;
+      //console.log(highlightedModel.position.z); 
+    }
+    
+    if (spaceDown) { deselectModel(); }
+    
     if (ascend) {
       velocity.y +=  10000.0 * delta;
     }

@@ -5,6 +5,7 @@ var textureLoader = new THREE.TextureLoader();
 var modelInstances = [];
 var textures = [];
 var modelPromises = [];
+var meshes = [];
 
 
 function loadModel(modelName, textureName) {
@@ -71,7 +72,7 @@ function createModelInstance(modelName, textureName) {
   var prom = new Promise(function(resolve, reject) {
     var found = false;
     for (var i = 0; i < modelPromises.length; i++) {
-      if (modelPromises[i].modelName == modelName) {
+      if (modelPromises[i].name === modelName) {
         found = true;
         modelPromises[i].promise.then(function (object) {
           var inst = object.clone();
@@ -80,6 +81,7 @@ function createModelInstance(modelName, textureName) {
           inst.name = object.name;
           modelInstances.push(inst);
           scene.add(inst);
+          addMesh(inst);
           resolve(inst);
         }, function (error){
           reject(error);
@@ -95,6 +97,9 @@ function createModelInstance(modelName, textureName) {
           inst.textureName = textureName;
           
           modelInstances.push(inst);
+          
+          addMesh(inst);
+          
           scene.add(inst);
           
           
@@ -108,13 +113,25 @@ function createModelInstance(modelName, textureName) {
 }
 
 var highlightedModel = null;
+
+function addMesh(model) {
+  for (var i = 0; i < model.children.length; i++) {
+    meshes.push(model.children[i]);
+  }
+}
+
 function highlightModel(model) {
   // restore model texture
-  if (highlightedModel != null) {
-    applyTexture(model, model.textureName);
-  }
+  deselectModel();
   
   highlightedModel = model;
   applyTexture(model, "highlight.png");
   
+}
+
+function deselectModel() {
+  if (highlightedModel != null) {
+    applyTexture(highlightedModel, highlightedModel.textureName);
+  }
+  highlightedModel = null;
 }
