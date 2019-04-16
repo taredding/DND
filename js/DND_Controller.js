@@ -5,7 +5,11 @@
  */
 const SCALE = 10;
  
- 
+var keys = [];
+const MAX_KEY_CODE = 222;
+for (var i = 0; i < MAX_KEY_CODE; i++) {
+  keys.push(true);
+}
 var rightMouseDown = false;
 var leftMouseDown = false;
 var raycaster = new THREE.Raycaster();
@@ -91,22 +95,22 @@ var objects = [];
 
 var raycaster;
 
-var moveForward = false;
-var moveBackward = false;
-var moveLeft = false;
-var moveRight = false;
-var ascend = false;
-var descend = false;
-var canJump = false;
+var moveForward = 87; // w
+var moveBackward = 83; // s
+var moveLeft = 65; // a
+var moveRight = 68; // d
+var ascend = 69; // e
+var descend = 81; // q
 
-var moveModelForward = false;
-var moveModelBackward = false;
-var moveModelLeft = false;
-var moveModelRight = false;
+var moveModelForward = 73; // i
+var moveModelBackward = 75; // k
+var moveModelLeft = 74; // j
+var moveModelRight = 76; // l
+var moveModelUp = 79; // o
+var moveModelDown = 85; // u
 
-var shiftDown = false;
-
-var spaceDown = false;
+var shift = 16;
+var space = 32;
 
 var prevTime = performance.now();
 var velocity = new THREE.Vector3();
@@ -145,88 +149,15 @@ function init() {
   scene.add( controls.getObject() );
 
   var onKeyDown = function ( event ) {
-
-    switch ( event.keyCode ) {
-
-      case 38: // up
-      case 87: // w
-        moveForward = true;
-        break;
-
-      case 37: // left
-      case 65: // a
-        moveLeft = true;
-        break;
-
-      case 40: // down
-      case 83: // s
-        moveBackward = true;
-        break;
-
-      case 39: // right
-      case 68: // d
-        moveRight = true;
-        break;
-        
-        
-      case 81: // q
-        descend = true;
-        break;
-      case 69: // e
-        ascend = true;
-        break;
-
-      case 32: // space
-        spaceDown = true;
-        break;
-        
-      case 73:
-        moveModelForward = true;
-      break;
-  
-    }
+    //console.log(event.keyCode);
+    keys[event.keyCode] = false;
 
   };
 
   var onKeyUp = function ( event ) {
 
-    switch ( event.keyCode ) {
-
-      case 38: // up
-      case 87: // w
-        moveForward = false;
-        break;
-
-      case 37: // left
-      case 65: // a
-        moveLeft = false;
-        break;
-
-      case 40: // down
-      case 83: // s
-        moveBackward = false;
-        break;
-
-      case 39: // right
-      case 68: // d
-        moveRight = false;
-        break;
-        
-      case 81: // q
-        descend = false;
-        break;
-      case 69: // e
-        ascend = false;
-        break;
-      case 32: // space
-        spaceDown = false;
-        break;
-        
-      case 73:
-        moveModelForward = false;
-      break;
-    }
-
+    keys[event.keyCode] = true;
+  
   };
 
   document.addEventListener( 'keydown', onKeyDown, false );
@@ -341,9 +272,9 @@ camera.updateMatrixWorld();
     if (leftMouseDown) {
       raycaster.setFromCamera( mouse, camera );
       var intersects = raycaster.intersectObjects( meshes );
-      //console.log("Intersections: " + intersects.length);
+      console.log("Intersections: " + intersects.length);
       if (intersects.length > 0) {
-        //console.log("Parent: " + intersects[0].object.parent);
+        console.log("Parent: " + intersects[0].object.parent);
         for (var i = 0; i < intersects.length; i++) {
           var object = intersects[0].object.parent;
           // ignore invisible objects
@@ -360,42 +291,39 @@ camera.updateMatrixWorld();
 
     velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
-    velocity.y -=  velocity.y * 10.0 * delta;
+    velocity.y = 0;
     if (!document.hasFocus()) {
-      velocity.x = 0;
-      velocity.z = 0;
-      moveForward = false;
-      moveBackward = false;
-      moveLeft = false;
-      moveRight = false;
-      ascend = false;
-      descend = false;
+      for (var i = 0; i < keys.length; i++) {
+        keys[i] = false;
+      }
     }
     //velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
-    direction.z = Number( moveForward ) - Number( moveBackward );
-    direction.x = Number( moveLeft ) - Number( moveRight );
+    direction.z = Number( isKeyDown(moveBackward) ) - Number( isKeyDown(moveForward) );
+    direction.x = Number( isKeyDown(moveRight)) - Number( isKeyDown(moveLeft) ) ;
+    
     direction.normalize(); // this ensures consistent movements in all directions
-
-    if ( moveForward || moveBackward ) velocity.z -= direction.z * 1000.0 * delta;
-    if ( moveLeft || moveRight ) velocity.x -= direction.x * 1000.0 * delta;
+    direction.y = Number( isKeyDown(ascend)) - Number( isKeyDown(descend) ) ;
+    
+    if ( isKeyDown(moveForward) || isKeyDown(moveBackward) ) velocity.z -= direction.z * 1000.0 * delta;
+    if ( isKeyDown(moveLeft) || isKeyDown(moveRight) ) velocity.x -= direction.x * 1000.0 * delta;
+    if ( isKeyDown(ascend) || isKeyDown(descend) ) velocity.y -= direction.y * 10000.0 * delta;
     //console.log(moveModelForward && highlightedModel != null);
-    if (moveModelForward && highlightModel != null) {
-      highlightedModel.position.z += 100.0 * delta;
-      //console.log(highlightedModel.position.z); 
-    }
     
-    if (spaceDown) { deselectModel(); }
+    if (highlightedModel) {
+      var zDir = Number( isKeyDown(moveModelBackward) ) - Number( isKeyDown(moveModelForward) );
+      var xDir = Number( isKeyDown(moveModelRight)) - Number( isKeyDown(moveModelLeft) ) ;
+      var yDir = Number( isKeyDown(moveModelDown)) - Number( isKeyDown(moveModelUp) ) ;
+      
+      
+      highlightedModel.position.z += zDir * delta * 100.0;
+      highlightedModel.position.x += xDir * delta * 100.0;
+      highlightedModel.position.y += yDir * delta * 100.0;
+    }
+
     
-    if (ascend) {
-      velocity.y +=  10000.0 * delta;
-    }
-    else if (descend) {
-      velocity.y +=  -10000.0 * delta;
-    }
-    else {
-      velocity.y = 0;
-    }
+    if (!isKeyDown(space)) { deselectModel(); }
+    
 
     controls.getObject().translateX( velocity.x * delta );
     controls.getObject().translateY( velocity.y * delta );
@@ -408,4 +336,7 @@ camera.updateMatrixWorld();
 
 }
 
+function isKeyDown(code) {
+  return keys[code];
+}
       
