@@ -102,12 +102,12 @@ var moveRight = 68; // d
 var ascend = 69; // e
 var descend = 81; // q
 
-var moveModelForward = 73; // i
-var moveModelBackward = 75; // k
-var moveModelLeft = 74; // j
-var moveModelRight = 76; // l
-var moveModelUp = 79; // o
-var moveModelDown = 85; // u
+var moveModelForward = 38; // up
+var moveModelBackward = 40; // k
+var moveModelLeft = 37; // j
+var moveModelRight = 39; // l
+var moveModelUp = 33; // o
+var moveModelDown = 34; // u
 
 var shift = 16;
 var space = 32;
@@ -134,7 +134,7 @@ function init() {
 
   
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
-
+  
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0xffffff );
   scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
@@ -145,7 +145,9 @@ function init() {
 
   controls = new THREE.PointerLockControls( camera );
 
-
+    controls.getObject().translateX( 50 * SCALE );
+    controls.getObject().translateY( 0 );
+    //controls.getObject().translateZ( 50 * SCALE );
   scene.add( controls.getObject() );
 
   var onKeyDown = function ( event ) {
@@ -292,11 +294,7 @@ camera.updateMatrixWorld();
     velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
     velocity.y = 0;
-    if (!document.hasFocus()) {
-      for (var i = 0; i < keys.length; i++) {
-        keys[i] = false;
-      }
-    }
+    
     //velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
     direction.z = Number( isKeyDown(moveBackward) ) - Number( isKeyDown(moveForward) );
@@ -315,10 +313,17 @@ camera.updateMatrixWorld();
       var xDir = Number( isKeyDown(moveModelRight)) - Number( isKeyDown(moveModelLeft) ) ;
       var yDir = Number( isKeyDown(moveModelDown)) - Number( isKeyDown(moveModelUp) ) ;
       
-      
-      highlightedModel.position.z += zDir * delta * 100.0;
-      highlightedModel.position.x += xDir * delta * 100.0;
-      highlightedModel.position.y += yDir * delta * 100.0;
+      if (isKeyDown(shift)) {
+        highlightedModel.position.z += zDir * delta * 100.0;
+        highlightedModel.position.x += xDir * delta * 100.0;
+        highlightedModel.position.y += yDir * delta * 100.0;
+      }
+      else {
+        const rotSpeed = Math.PI / 4;
+        highlightedModel.rotation.x += zDir * delta * rotSpeed;
+        highlightedModel.rotation.y += xDir * delta * rotSpeed;
+        highlightedModel.rotation.z += yDir * delta * rotSpeed;
+      }
     }
 
     
@@ -334,6 +339,12 @@ camera.updateMatrixWorld();
     stats.end();
   renderer.render( scene, camera );
 
+}
+
+document.onfocusout = function () {
+  for (var i = 0; i < keys.length; i++) {
+        keys[i] = false;
+      }
 }
 
 function isKeyDown(code) {

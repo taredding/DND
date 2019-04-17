@@ -22,6 +22,7 @@ function loadModel(modelName, textureName) {
       
       object.name = modelName;
       object.modelName = modelName;
+      scene.remove(object);
       resolve(object);
     },
     function(stat){},
