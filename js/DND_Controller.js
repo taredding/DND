@@ -109,8 +109,13 @@ var moveModelRight = 39; // l
 var moveModelUp = 33; // o
 var moveModelDown = 34; // u
 
+var addRoomCorner1key = 82;//r
+var addRoomCorner2key = 84//t
+
 var shift = 16;
 var space = 32;
+
+var deleteKey = 46; // delete key
 
 var prevTime = performance.now();
 var velocity = new THREE.Vector3();
@@ -306,6 +311,12 @@ camera.updateMatrixWorld();
     if ( isKeyDown(moveForward) || isKeyDown(moveBackward) ) velocity.z -= direction.z * 1000.0 * delta;
     if ( isKeyDown(moveLeft) || isKeyDown(moveRight) ) velocity.x -= direction.x * 1000.0 * delta;
     if ( isKeyDown(ascend) || isKeyDown(descend) ) velocity.y -= direction.y * 10000.0 * delta;
+    if (!isKeyDown(deleteKey)) {
+      var temp = highlightedModel;
+      deselectModel();
+      deleteObject(temp);
+      //keys[delete]
+    }
     //console.log(moveModelForward && highlightedModel != null);
     
     if (highlightedModel) {

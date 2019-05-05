@@ -136,3 +136,26 @@ function deselectModel() {
   }
   highlightedModel = null;
 }
+
+function deleteObject(object) {
+  //console.log("delete object called: " + object);
+  if (object) {
+    //console.log("delete object");
+    for (var i = 0; i < meshes.length; i++) {
+      if (meshes[i].parent && meshes[i].parent.uuid == object.uuid) {
+        meshes.splice(i,1);
+        //console.log("Mesh deleted");
+        i--;
+      }
+    }
+    for (var i = 0; i < modelInstances.length; i++) {
+      if (object == modelInstances[i]) {
+        modelInstances.splice(i,1);
+        //console.log("model instance removed");
+        break;
+      }
+    }
+    scene.remove(object);
+  }
+}
+

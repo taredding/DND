@@ -1,6 +1,8 @@
 var worldGrid;
 var rooms = [];
 const PANEL_MODEL_NAME = "panel2.obj";
+var currentLevel = 2;
+
 
 function initWorldGrid() {
   worldGrid = [];
@@ -17,8 +19,10 @@ function initWorldGrid() {
 
 function Cell(x, y, z) {
   this.position = {};
+  this.floors = [];
+  this.walls = [];
   this.position.x = x * SCALE * 2;
-  this.position.y = y * SCALE * 2;
+  this.position.y = y * SCALE * 2 * 2.2;
   this.position.z = z * SCALE * 2;
   this.room = null;
   this.x = x;
@@ -40,7 +44,7 @@ function Cell(x, y, z) {
     var _this = this;
     createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function (model) {
       _this.models.push(model);
-      _this.floor = model;
+      _this.floors.push(model);
       model.position.set(_this.position.x, _this.position.y, _this.position.z);
       this.addCellParentToModel(_this, model, "floor");
     });
@@ -50,7 +54,7 @@ function Cell(x, y, z) {
     var _this = this;
     createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function (model) {
       _this.models.push(model);
-      
+      _this.walls.push(model);
       model.position.set(_this.position.x, _this.position.y, _this.position.z);
       model.rotation.z = Math.PI / 2;
       model.rotation.x = 3.0 * Math.PI / 2;
@@ -61,7 +65,7 @@ function Cell(x, y, z) {
       
       createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function (model2) {
         _this.models.push(model2);
-        
+        _this.walls.push(model2);
         model2.position.set(_this.position.x, _this.position.y, _this.position.z);
         model2.rotation.z = Math.PI / 2;
         model2.rotation.x = 3.0 * Math.PI / 2;
@@ -83,12 +87,12 @@ function Cell(x, y, z) {
       model.rotation.x = 0.5 * Math.PI;
       model.position.x += 1.15 * SCALE;
       model.position.y += 1.16 * SCALE;
-      
+      _this.walls.push(model);
       this.addCellParentToModel(_this, model, "wall");
       
       createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function (model2) {
         _this.models.push(model2);
-        
+        _this.walls.push(model2);
         model2.position.set(_this.position.x, _this.position.y, _this.position.z);
         model2.rotation.z = Math.PI / 2;
         model2.rotation.x = 0.5 * Math.PI;
@@ -109,7 +113,7 @@ function Cell(x, y, z) {
       
       model.rotation.x =  .5 * Math.PI;
       
-      
+      _this.walls.push(model);
       model.position.z -= 1.15  * SCALE;
       model.position.y += 1.16 * SCALE;
       
@@ -117,7 +121,7 @@ function Cell(x, y, z) {
       
       createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function (model2) {
         _this.models.push(model2);
-
+        _this.walls.push(model2);
         model2.position.set(_this.position.x, _this.position.y, _this.position.z);
 
         model2.rotation.x =  .5 * Math.PI;
@@ -135,7 +139,7 @@ function Cell(x, y, z) {
     var _this = this;
     createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function (model) {
       _this.models.push(model);
-      
+      _this.walls.push(model);
       model.position.set(_this.position.x, _this.position.y, _this.position.z);
       
       model.rotation.x =  0.5 * Math.PI;
@@ -148,7 +152,7 @@ function Cell(x, y, z) {
       
       createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function (model2) {
         _this.models.push(model2);
-
+        _this.walls.push(model2);
         model2.position.set(_this.position.x, _this.position.y, _this.position.z);
 
         model2.rotation.x =  0.5 * Math.PI;
@@ -170,10 +174,27 @@ function addCellParentToModel(inst, model, type) {
   model.role = type;
 }
 
-function Room(xMin, zMin, level, width, length, name) {
+function applyRoomWallTexture(room, textureName) {
+  for (var j = 0; j < room.cells.length; j++) {
+    var cell = room.cells[j];
+    for (var i = 0; i < cell.walls.length; i++) {
+      applyTexturePermanent(cell.walls[i], textureName);
+    }
+  }
+}
+function applyRoomFloorTexture(room, textureName) {
+  for (var j = 0; j < room.cells.length; j++) {
+    var cell = room.cells[j];
+    for (var i = 0; i < cell.floors.length; i++) {
+      applyTexturePermanent(cell.floors[i], textureName);
+    }
+  }
+}
+
+function Room(xMin, zMin, width, length, name) {
   this.xMin = xMin;
   this.zMin = zMin;
-  this.level = level;
+  this.level = currentLevel;
   this.width = width;
   this.length = length;
   this.name = name;
@@ -181,7 +202,17 @@ function Room(xMin, zMin, level, width, length, name) {
   
   for (var i = xMin; i < xMin + width; i++) {
     for (var j = zMin; j < zMin + length; j++) {
-      var cell = worldGrid[i][level][j];
+      var cell = worldGrid[i][currentLevel][j];
+      if (cell.room != null) {
+        alert("Didn't add room, intersected existing room: " + cell.room.name);
+        return;
+      }
+    }
+  }
+  
+  for (var i = xMin; i < xMin + width; i++) {
+    for (var j = zMin; j < zMin + length; j++) {
+      var cell = worldGrid[i][currentLevel][j];
       if (cell.room == null) {
         cell.room = this;
         cell.addFloor();
@@ -207,11 +238,11 @@ function Room(xMin, zMin, level, width, length, name) {
   
 }
 
-function addRoom(xMin, zMin, level, width, length, name) {
+function addRoom(xMin, zMin, width, length, name) {
   if (!name) {
     name = "Room " + rooms.length;
   }
-  rooms.push(new Room(xMin, zMin, level, width, length, name));
+  rooms.push(new Room(xMin, zMin, width, length, name));
 }
 
 function main() {
@@ -220,5 +251,5 @@ function main() {
   animate();
   initWorldGrid();
   
-  addRoom(0, 0, 2, 5, 5, "Test room");
+  addRoom(0, 0, 5, 5, "Test room");
 }
