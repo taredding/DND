@@ -7,6 +7,7 @@ var textures = [];
 var modelPromises = [];
 var meshes = [];
 
+var cursorModel = null;
 
 function loadModel(modelName, textureName) {
   var prom = new Promise(function(resolve, reject) {
@@ -157,5 +158,21 @@ function deleteObject(object) {
     }
     scene.remove(object);
   }
+}
+
+function createCursorModel() {
+  createModelInstance(PANEL_MODEL_NAME, "placeholder.png").then(function(object) {
+    applyTexturePermanent(object, "blue.png");
+    cursorModel = object;
+    console.log("cursor model created");
+  });
+}
+
+function turnOffCursorModel() {
+  scene.remove(cursorModel);
+}
+
+function turnOnCursorModel() {
+  scene.add(cursorModel);
 }
 

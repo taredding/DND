@@ -251,8 +251,21 @@ function addRoom(xMin, zMin, width, length, name) {
 function main() {
 
   init();
-  animate();
-  initWorldGrid();
   
+  initWorldGrid();
+  createCursorModel();
   addRoom(WORLD_WIDTH / 2, WORLD_DEPTH / 2, 5, 5, "Test room");
+  console.log("main called");
+  animate();
+}
+
+function moveLevelUp() {
+  if (currentLevel < WORLD_HEIGHT - 1) {
+    currentLevel++;
+  }
+}
+function moveLevelDown() {
+  if (currentLevel > 0) {
+    currentLevel--;
+  }
 }

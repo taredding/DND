@@ -232,7 +232,7 @@ object.scale.x = Math.random() + 0.5;
   //
 
   window.addEventListener( 'resize', onWindowResize, false );
-
+  
 }
 
 function onWindowResize() {
@@ -247,13 +247,13 @@ function onWindowResize() {
 function animate() {
   stats.begin();
   requestAnimationFrame( animate );
-camera.updateMatrixWorld();
+  camera.updateMatrixWorld();
     
     if (leftMouseDown) {
       raycaster.setFromCamera( mouse, camera );
       var intersects = raycaster.intersectObjects( meshes );
       console.log("Intersections: " + intersects.length);
-      if (intersects.length > 0) {
+      if (intersects.length > 0 && intersects[0].object.parent.uuid != cursorModel.uuid) {
         console.log("Parent: " + intersects[0].object.parent);
         for (var i = 0; i < intersects.length; i++) {
           var object = intersects[0].object.parent;
@@ -263,6 +263,25 @@ camera.updateMatrixWorld();
             break;
           }
         }
+        cursorModel.visible = false;
+      }
+      else {
+        // figure out raycasting for empty grid location
+        //https://stackoverflow.com/questions/10838230/determine-the-point-of-intersection-of-a-line-in-the-xy-plane
+        var origin = raycaster.ray.origin;
+        var dir = raycaster.ray.direction;
+
+        var y = currentLevel * 2.2 * 2 * SCALE;
+        var xSlope = dir.x / dir.y;
+        var zSlope = dir.z / dir.y;
+        
+        var x = origin.x - xSlope * (origin.y - y);
+        var z = origin.z - zSlope * (origin.y - y);
+
+        cursorModel.position.x = Math.floor((x + SCALE) / (SCALE * 2)) * SCALE * 2;
+        cursorModel.position.z = Math.floor((z + SCALE) / (SCALE * 2)) * SCALE * 2;
+        cursorModel.position.y = y;
+        cursorModel.visible = true;
       }
     }
     
@@ -321,17 +340,71 @@ camera.updateMatrixWorld();
     prevTime = time;
 
     stats.end();
+  
+  var levelY = SCALE * 2 * 2.2 * currentLevel + 2.0;
+  grid.position.y = levelY;
+  cursorModel.position.y = SCALE * 2 * 2.2 * currentLevel;
   renderer.render( scene, camera );
-  grid.position.y = SCALE * 2 * 2.2 * currentLevel + 2.0
 }
 
 document.onfocusout = function () {
   for (var i = 0; i < keys.length; i++) {
-        keys[i] = false;
-      }
+    keys[i] = false;
+  }
 }
 
 function isKeyDown(code) {
   return keys[code];
 }
+
+// Prevent clicks on menu from interacting with world
+// https://stackoverflow.com/questions/39435334/how-can-i-block-a-three-js-raycast-with-html-elements
+document.getElementById("menu").onmousedown = function(e) {
+  e.stopPropagation();
+}
+document.getElementById("menu").onmouseup = function(e) {
+  e.stopPropagation();
+}
+
+var modelChooser = document.getElementById("modelChooser");
+modelChooser.onchange = function() {
+  var files = modelChooser.files;
+  //var fileNames = [];
+
+  var selector = document.getElementById("modelSelector");
+  for(var i = selector.options.length - 1 ; i >= 0 ; i--)
+  {
+      selector.remove(i);
+  }
+  for (var i = 0; i < files.length; i++) {
+    if (files[i].name.endsWith(".obj")) {
+      //console.log(files[i].name);
+      //fileNames.push(files[i].name);
+      var el = document.createElement("option");
+      el.textContent = files[i].name;
+      el.value = files[i].name;
+      selector.appendChild(el);
+    }
+  }
+}
+
+function addObject() {
+  var selector = document.getElementById("modelSelector");
+  var modelName = selector.value;
+  var pos = null;
+  console.log("Add " + modelName);
+  if (modelName && highlightedModel) {
+    pos = highlightedModel.position.clone();
+  }
+  else if (modelName && cursorModel.visible) {
+    pos = cursorModel.position.clone();
+  }
+  
+  if (pos != null) {
+    createModelInstance(modelName, "placeholder.png").then(function(obj){
+      obj.position.set(pos.x, pos.y, pos.z);
+    });
+  }
+}
+
       
