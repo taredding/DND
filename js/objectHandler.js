@@ -157,6 +157,10 @@ function deleteObject(object) {
       }
     }
     scene.remove(object);
+    if (object.cell && object.cell.room) {
+      object.cell.room.remove(object.uuid);
+    }
+
   }
 }
 

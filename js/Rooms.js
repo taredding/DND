@@ -34,13 +34,13 @@ function Cell(x, y, z) {
   
   this.models = [];
   this.hide = function() {
-    for (var i = 0; i < models.length; i++) {
-      models[i].visible = false;
+    for (var i = 0; i < this.models.length; i++) {
+      this.models[i].visible = false;
     }
   }
   this.show = function() {
-    for (var i = 0; i < models.length; i++) {
-      models[i].visible = true;
+    for (var i = 0; i < this.models.length; i++) {
+      this.models[i].visible = true;
     }
   }
   this.addFloor = function() {
@@ -202,6 +202,8 @@ function Room(xMin, zMin, width, length, name) {
   this.length = length;
   this.name = name;
   this.cells = [];
+  // for models not in a specific cell
+  this.models = [];
   
   for (var i = xMin; i < xMin + width; i++) {
     for (var j = zMin; j < zMin + length; j++) {
@@ -239,6 +241,40 @@ function Room(xMin, zMin, width, length, name) {
     }
   }
   
+  this.hide = function(){
+    this.toggleDisplay(false);
+  }
+
+  this.show = function() {
+    this.toggleDisplay(true);
+  }
+
+  this.toggleDisplay = function(val) {
+    for (var i = 0; i < this.cells.length; i++) {
+      if (val) {
+        this.cells[i].show();
+      }
+      else {
+        this.cells[i].hide();
+      }
+    }
+    for (var i = 0; i < this.models.length; i++) {
+      this.models[i].visible = val;
+    }
+  }
+
+  this.addModel = function(model) {
+    this.models.push(model);
+  }
+  this.deleteModel = function(modelID) {
+    for (var i = 0; i < this.models.length; i++) {
+      if (this.models[i].uuid == modelID) {
+        this.models[i].splice(i, 1);
+        break;
+      }
+    }
+  }
+
 }
 
 function addRoom(xMin, zMin, width, length, name) {
@@ -262,10 +298,35 @@ function main() {
 function moveLevelUp() {
   if (currentLevel < WORLD_HEIGHT - 1) {
     currentLevel++;
+    resetRoomsVisibility();
   }
 }
 function moveLevelDown() {
   if (currentLevel > 0) {
     currentLevel--;
+    resetRoomsVisibility();
+  }
+}
+
+function resetRoomsVisibility() {
+  for (var i = 0; i < rooms.length; i++) {
+    if (rooms[i].level == currentLevel) {
+      rooms[i].show();
+    }
+    else {
+      rooms[i].hide();
+    }
+  }
+  for (var i = 0; i < modelInstances.length; i++) {
+    var m = modelInstances[i];
+
+    if (m.level != undefined) {
+      if (m.level == currentLevel) {
+        m.visible = true;
+      }
+      else {
+        m.visible = false;
+      }
+    }
   }
 }

@@ -254,9 +254,11 @@ function animate() {
       var intersects = raycaster.intersectObjects( meshes );
       console.log("Intersections: " + intersects.length);
       if (intersects.length > 0 && intersects[0].object.parent.uuid != cursorModel.uuid) {
-        console.log("Parent: " + intersects[0].object.parent);
+        //console.log("Parent: " + intersects[0].object.parent);
+
+
         for (var i = 0; i < intersects.length; i++) {
-          var object = intersects[0].object.parent;
+          var object = intersects[i].object.parent;
           // ignore invisible objects
           if (object.visible) {
             highlightModel(object);
@@ -268,6 +270,7 @@ function animate() {
       else {
         // figure out raycasting for empty grid location
         //https://stackoverflow.com/questions/10838230/determine-the-point-of-intersection-of-a-line-in-the-xy-plane
+        deselectModel();
         var origin = raycaster.ray.origin;
         var dir = raycaster.ray.direction;
 
@@ -403,8 +406,16 @@ function addObject() {
   if (pos != null) {
     createModelInstance(modelName, "placeholder.png").then(function(obj){
       obj.position.set(pos.x, pos.y, pos.z);
+      obj.level = currentLevel;
+      if (highlightedModel) {
+        if (highlightedModel.cell && highlightedModel.cell.room) {
+          highlightedModel.cell.room.addModel(obj);
+        }
+      }
     });
   }
+  
+
 }
 
       
