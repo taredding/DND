@@ -122,7 +122,7 @@ var velocity = new THREE.Vector3();
 var direction = new THREE.Vector3();
 var vertex = new THREE.Vector3();
 var color = new THREE.Color();
-
+var grid;
 
 var stats;
 function init() {
@@ -148,10 +148,19 @@ function init() {
   light.position.set( 0.5, 1, 0.75 );
   scene.add( light );
 
+  grid = new THREE.GridHelper( WORLD_WIDTH, WORLD_WIDTH, new THREE.Color( 0x00ff00 ), new THREE.Color( 0xff0000 ) );
+  grid.scale.x *= SCALE * 2;
+  grid.scale.y *= SCALE * 2;
+  grid.scale.z *= SCALE * 2;
+  grid.position.x += (WORLD_WIDTH - 1) * SCALE;
+  grid.position.z += (WORLD_WIDTH - 1) * SCALE;
+  scene.add( grid );
+
   controls = new THREE.PointerLockControls( camera );
 
-    controls.getObject().translateX( 50 * SCALE );
-    controls.getObject().translateY( 0 );
+  controls.getObject().translateX( 50 * SCALE );
+  controls.getObject().translateY( 0 );
+  
     //controls.getObject().translateZ( 50 * SCALE );
   scene.add( controls.getObject() );
 
@@ -188,45 +197,9 @@ function init() {
   } 
 
 
-  // floor
+  controls.getObject().translateX( SCALE * 2 * WORLD_WIDTH / 2 );
+  controls.getObject().translateZ( SCALE * 2 * WORLD_WIDTH / 2 );
 
-  var floorGeometry = new THREE.PlaneBufferGeometry( 2000, 2000, 100, 100 );
-  floorGeometry.rotateX( - Math.PI / 2 );
-
-  // vertex displacement
-
-  var position = floorGeometry.attributes.position;
-
-  for ( var i = 0, l = position.count; i < l; i ++ ) {
-
-    vertex.fromBufferAttribute( position, i );
-
-    vertex.x += Math.random() * 20 - 10;
-    vertex.y += Math.random() * 2;
-    vertex.z += Math.random() * 20 - 10;
-
-    position.setXYZ( i, vertex.x, vertex.y, vertex.z );
-
-  }
-
-  floorGeometry = floorGeometry.toNonIndexed(); // ensure each face has unique vertices
-
-  position = floorGeometry.attributes.position;
-  var colors = [];
-
-  for ( var i = 0, l = position.count; i < l; i ++ ) {
-
-    color.setHSL( Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
-    colors.push( color.r, color.g, color.b );
-
-  }
-
-  floorGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
-
-  var floorMaterial = new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } );
-
-  var floor = new THREE.Mesh( floorGeometry, floorMaterial );
-  scene.add( floor );
   
 var geometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
 
@@ -349,7 +322,7 @@ camera.updateMatrixWorld();
 
     stats.end();
   renderer.render( scene, camera );
-
+  grid.position.y = SCALE * 2 * 2.2 * currentLevel + 2.0
 }
 
 document.onfocusout = function () {

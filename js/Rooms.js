@@ -2,15 +2,18 @@ var worldGrid;
 var rooms = [];
 const PANEL_MODEL_NAME = "panel2.obj";
 var currentLevel = 2;
+const WORLD_WIDTH = 100;
+const WORLD_DEPTH = 100;
+const WORLD_HEIGHT = 10;
 
 
 function initWorldGrid() {
   worldGrid = [];
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < WORLD_WIDTH; i++) {
     worldGrid.push([]);
-    for (var j = 0; j < 10; j++) {
+    for (var j = 0; j < WORLD_HEIGHT; j++) {
       worldGrid[i].push([]);
-      for (var k = 0; k < 100; k++) {
+      for (var k = 0; k < WORLD_DEPTH; k++) {
         worldGrid[i][j].push(new Cell(i, j, k));
       }
     }
@@ -251,5 +254,5 @@ function main() {
   animate();
   initWorldGrid();
   
-  addRoom(0, 0, 5, 5, "Test room");
+  addRoom(WORLD_WIDTH / 2, WORLD_DEPTH / 2, 5, 5, "Test room");
 }
