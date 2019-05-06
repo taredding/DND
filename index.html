@@ -14,7 +14,10 @@
 			Current Level: <br />
 			<button onclick="moveLevelUp()">Up</button><button onclick="moveLevelDown()">Down</button> <br />
 			<input type="file" name="client-file" id="modelChooser" webkitdirectory directory multiple /> <br />
-			<select id="modelSelector"></select> <button onclick="addObject()">Add Model</button>
+			<select id="modelSelector"></select> <button onclick="addObject()">Add Model</button> <br />
+
+			<input type="file" name="client-file" id="textureChooser" webkitdirectory directory multiple /> <br />
+			<select id="textureSelector"></select> <button onclick="applyTextureButtonFunc()">Apply Texture</button> <br />
 		</div>
     
 		<script src="./js/three.js"></script>

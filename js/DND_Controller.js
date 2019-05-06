@@ -418,4 +418,29 @@ function addObject() {
 
 }
 
+var texChooser = document.getElementById("textureChooser");
+var texSelector = document.getElementById("textureSelector");
+texChooser.onchange = function() {
+  var files = texChooser.files;
+
+  var selector = texSelector;
+  for(var i = selector.options.length - 1 ; i >= 0 ; i--)
+  {
+      selector.remove(i);
+  }
+  for (var i = 0; i < files.length; i++) {
+    var el = document.createElement("option");
+    el.textContent = files[i].name;
+    el.value = files[i].name;
+    selector.appendChild(el);
+  }
+}
+
+function applyTextureButtonFunc() {
+  if (highlightedModel && texSelector.value) {
+    applyTexturePermanent(highlightedModel, texSelector.value);
+    deselectModel();
+  }
+}
+
       
